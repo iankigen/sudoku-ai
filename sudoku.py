@@ -1,11 +1,12 @@
 class Sudoku(object):
 	def __init__(self):
 		self.rows = 'ABCDEFGHI'
-		self.cols = '123456789'
+		self.digits = '123456789'
+		self.cols = self.digits
 		self.board = self.cross()
 		self.unit_list = self.row_units() + self.col_units() + self.square_units()
 		self.units = dict((s, [u for u in self.unit_list if s in u]) for s in self.board)
-		self.peers = dict((s, set(sum(self.units[s], [])) - set([s])) for s in self.board)
+		self.peers = dict((s, set(sum(self.units[s], [])) - {s}) for s in self.board)
 
 	def cross(self, rows=None, cols=None):
 		rows = rows or self.rows
@@ -17,7 +18,7 @@ class Sudoku(object):
 		return all_row_units[position] if 0 <= position < 9 else all_row_units
 
 	def col_units(self, position=-1):
-		all_col_units = [self.cross(c, self.rows) for c in self.cols]
+		all_col_units = [self.cross(self.rows, c) for c in self.cols]
 		return all_col_units[position] if 0 <= position < 9 else all_col_units
 
 	def square_units(self, position=-1):
@@ -51,6 +52,17 @@ class Sudoku(object):
 				values[peer] = values[peer].replace(digit, '')
 		return values
 
+	def only_choice(self, values):
+		"""Finalize all values that are the only choice for a unit.
+		Go through all the units, and whenever there is a unit with a value
+		that only fits in one box, assign the value to this box."""
+		for unit in self.unit_list:
+			for digit in self.digits:
+				dplaces = [box for box in unit if digit in values[box]]
+				if len(dplaces) == 1:
+					values[dplaces[0]] = digit
+		return values
+
 	def __str__(self):
 		return "{}".format(self.board)
 
@@ -63,3 +75,5 @@ sudoku.display_board(sudoku.grid_values(unsolved))
 
 print('AFTER ELIMINATION')
 sudoku.display_board(sudoku.eliminate(sudoku.grid_values(unsolved)))
+
+sudoku.display_board(sudoku.only_choice(sudoku.eliminate(sudoku.grid_values(unsolved))))
