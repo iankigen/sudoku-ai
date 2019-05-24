@@ -85,6 +85,22 @@ class Sudoku(object):
 				return False
 		return values
 
+	def search(self, values):
+		"""Using depth-first search and propagation, create a search tree and solve the sudoku."""
+		values = self.reduce_puzzle(values)
+		if values is False:
+			return False  # No solution
+		if all(len(values[s]) == 1 for s in values):
+			return values  # Solved
+		length, box = min((len(values[box]), box) for box in values if len(values[box]) > 1)
+
+		for value in values[box]:
+			new_sudoku = values.copy()
+			new_sudoku[box] = value
+			attempt = self.search(new_sudoku)
+			if attempt:
+				return attempt
+
 	def __str__(self):
 		return "{}".format(self.board)
 
@@ -103,3 +119,31 @@ sudoku.display_board(sudoku.only_choice(sudoku.eliminate(sudoku.grid_values(unso
 
 print('AFTER APPLYING CONSTRAINT PROPAGATION')
 sudoku.display_board(sudoku.only_choice(sudoku.reduce_puzzle(sudoku.eliminate(sudoku.grid_values(unsolved)))))
+
+print('=' * 20)
+print('TESTING ON UNSOLVED HARDER SUDOKU')
+print('=' * 20)
+print('BEFORE ELIMINATION')
+
+unsolved_harder_sudoku = '4.....8.5.3..........7......2.....6.....8.4......1.......6.3.7.5..2.....1.4......'
+
+sudoku.display_board(sudoku.grid_values(unsolved_harder_sudoku))
+
+print('AFTER ELIMINATION')
+sudoku.display_board(sudoku.eliminate(sudoku.grid_values(unsolved_harder_sudoku)))
+
+print('AFTER APPLYING ONLY CHOICE')
+sudoku.display_board(sudoku.only_choice(sudoku.eliminate(sudoku.grid_values(unsolved_harder_sudoku))))
+
+print('AFTER APPLYING CONSTRAINT PROPAGATION')
+"""
+The algorithm didn't solve it. It seemed to reduce every box to a number of possibilites, but it won't go farther
+than that. 
+"""
+
+sudoku.display_board(
+	sudoku.only_choice(sudoku.reduce_puzzle(sudoku.eliminate(sudoku.grid_values(unsolved_harder_sudoku)))))
+
+print('AFTER APPLYING DEPTH FIRST SEARCH')
+sudoku.display_board(sudoku.search(
+	sudoku.only_choice(sudoku.reduce_puzzle(sudoku.eliminate(sudoku.grid_values(unsolved_harder_sudoku))))))
