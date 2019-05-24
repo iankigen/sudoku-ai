@@ -63,6 +63,28 @@ class Sudoku(object):
 					values[dplaces[0]] = digit
 		return values
 
+	def reduce_puzzle(self, values):
+		"""
+		Constraint propagation
+
+		Iterate eliminate() and only_choice(). If at some point, there is a box with no available values, return False.
+		If the sudoku is solved, return the sudoku.
+		If after an iteration of both functions, the sudoku remains the same, return the sudoku.
+		"""
+		stalled = False
+
+		while not stalled:
+			solved_values_before = len([box for box in values.keys() if len(values[box]) == 1])
+			values = self.eliminate(values)
+			values = self.only_choice(values)
+			solved_values_after = len([box for box in values.keys() if len(values[box]) == 1])
+			stalled = solved_values_after == solved_values_before
+
+			# Sanity check. Return false if there's a box with zero available values
+			if len([box for box in values.keys() if len(values[box]) == 0]):
+				return False
+		return values
+
 	def __str__(self):
 		return "{}".format(self.board)
 
@@ -76,4 +98,8 @@ sudoku.display_board(sudoku.grid_values(unsolved))
 print('AFTER ELIMINATION')
 sudoku.display_board(sudoku.eliminate(sudoku.grid_values(unsolved)))
 
+print('AFTER APPLYING ONLY CHOICE')
 sudoku.display_board(sudoku.only_choice(sudoku.eliminate(sudoku.grid_values(unsolved))))
+
+print('AFTER APPLYING CONSTRAINT PROPAGATION')
+sudoku.display_board(sudoku.only_choice(sudoku.reduce_puzzle(sudoku.eliminate(sudoku.grid_values(unsolved)))))
